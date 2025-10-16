@@ -1,0 +1,32 @@
+# 深度学习框架
+torch>=1.9.0
+torchvision>=0.10.0
+torchaudio>=0.9.0
+
+# 预训练模型和NLP
+transformers>=4.12.0
+tokenizers>=0.10.0
+
+# 科学计算和数据处理
+numpy>=1.19.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
+scipy>=1.7.0
+
+# 图像处理
+Pillow>=8.3.0
+opencv-python>=4.5.0
+
+# 进度条和可视化
+tqdm>=4.62.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# 配置和日志
+pyyaml>=5.4.0
+tensorboard>=2.7.0
+wandb>=0.12.0
+
+# 其他工具
+requests>=2.26.0
+h5py>=3.4.0
