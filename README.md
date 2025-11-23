@@ -68,8 +68,8 @@ python train.py --config configs/synthetic_config.json
 使用真实数据集（COCO）
 python train.py \
     --dataset coco \
-    --data_dir /path/to/coco/images \
-    --annotations_file /path/to/coco/annotations.json \
+    --data_dir /data2/zhangchaoke/PythonProject/MyCMH/datasets/train2014 \
+    --annotations_file /data2/zhangchaoke/PythonProject/MyCMH/datasets/annotations/captions_train2014.json \
     --hash_dim 64 \
     --batch_size 32 \
     --num_epochs 100

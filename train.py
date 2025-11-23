@@ -110,8 +110,10 @@ def create_dataset(config, tokenizer, split='train'):
     elif config.dataset_name == 'coco':
         # COCO数据集
         dataset = COCODataset(
-            image_dir=config.image_dir,
-            annotations_file=config.annotations_file,
+            # image_dir=config.image_dir,
+            image_dir=f"/data2/zhangchaoke/PythonProject/MyCMH/datasets/{split if split == 'train' else 'val'}2014",
+            # annotations_file=config.annotations_file,
+            annotations_file=f"/data2/zhangchaoke/PythonProject/MyCMH/datasets/annotations/captions_{split if split == 'train' else 'val'}2014.json",
             tokenizer=tokenizer,
             image_transform=image_transform,
             max_text_length=config.max_text_length,

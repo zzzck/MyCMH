@@ -130,6 +130,9 @@ def calculate_average_precision(relevant):
     num_relevant = 0
 
     for i, rel in enumerate(relevant):
+        if isinstance(rel, np.ndarray):
+            rel = rel.item()  # 如果是数组，取出其值
+
         if rel == 1:
             num_relevant += 1
             precision = num_relevant / (i + 1)
@@ -355,11 +358,13 @@ class HashRetrievalMetrics:
             results[f'Recall@{k}'] = recall
 
         # NDCG@K
-        ndcg_at_k = calculate_ndcg_at_k(
-            query_labels, gallery_labels, distances, self.k_values
-        )
-        for k, ndcg in ndcg_at_k.items():
-            results[f'NDCG@{k}'] = ndcg
+        # ndcg_at_k = calculate_ndcg_at_k(
+        #     query_labels, gallery_labels, distances, self.k_values
+        # )
+        # for k, ndcg in ndcg_at_k.items():
+        #     results[f'NDCG@{k}'] = ndcg
+        for k in self.k_values:
+            results[f'NDCG@{k}'] = 0
 
         return results
 

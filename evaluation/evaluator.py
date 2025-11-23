@@ -166,15 +166,15 @@ class CrossModalEvaluator:
                 # 使用哈希码进行评估
                 results = calculator.evaluate_cross_modal(
                     query_text_hashes, query_image_hashes,
-                    gallery_text_hashes, gallery_image_hashes,
-                    # query_labels, gallery_labels
+                    # gallery_text_hashes, gallery_image_hashes,
+                    query_labels, gallery_labels
                 )
             else:
                 # 使用特征进行评估
                 results = calculator.evaluate_cross_modal(
                     query_text_features, query_image_features,
-                    gallery_text_features, gallery_image_features,
-                    # query_labels, gallery_labels
+                    # gallery_text_features, gallery_image_features,
+                    query_labels, gallery_labels
                 )
 
             # 添加距离度量前缀

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="zhangchaoke@211.81.248.216:22 password (7)" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="zhangchaoke@211.81.248.216:22 password (8)" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
     <serverData>
       <paths name="chaoke@211.81.248.212:22 password">
         <serverdata>
@@ -110,7 +110,14 @@
       <paths name="zhangchaoke@211.81.248.216:22 password (7)">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/zhangchaoke/PythonProject/MyCMH" local="$PROJECT_DIR$" />
+            <mapping deploy="/data2/zhangchaoke/PythonProject/MyCMH" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="zhangchaoke@211.81.248.216:22 password (8)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/data2/zhangchaoke/PythonProject/MyCMH" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

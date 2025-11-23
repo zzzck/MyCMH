@@ -60,13 +60,13 @@ class TrainingConfig:
     samples_per_class: int = 2
 
     # 评估配置
-    eval_interval: int = 5
+    eval_interval: int = 1
     eval_k_values: List[int] = field(default_factory=lambda: [1, 5, 10, 20, 50])
 
     # 保存和日志配置
     save_dir: str = '/workspace/cross_modal_hash_retrieval/checkpoints'
     log_dir: str = '/workspace/cross_modal_hash_retrieval/logs'
-    save_interval: int = 10
+    save_interval: int = 1
     log_interval: int = 100
 
     # 设备配置
