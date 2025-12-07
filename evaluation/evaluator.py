@@ -129,14 +129,10 @@ class CrossModalEvaluator:
         extract_time = time.time() - start_time
         print(f"Feature extraction completed in {extract_time:.2f}s")
 
-        # 分割查询集和数据库集
+        # 分割查询集和数据库集，确保每个查询在图库中有对应标签
+        query_indices, gallery_indices = self._split_query_and_gallery(labels, split_ratio)
         num_samples = labels.size(0)
-        num_query = int(num_samples * split_ratio)
-
-        # 随机打乱索引
-        indices = torch.randperm(num_samples)
-        query_indices = indices[:num_query]
-        gallery_indices = indices[num_query:]
+        num_query = query_indices.numel()
 
         # 分割数据
         query_text_features = text_features[query_indices]
@@ -215,7 +211,56 @@ class CrossModalEvaluator:
         all_results['feature_dim'] = text_features.size(1)
         all_results['total_time'] = time.time() - start_time
 
+        # 记录标签分布信息，便于诊断
+        all_results['labels_with_query'] = labels[query_indices].unique().numel().item()
+        all_results['labels_with_gallery'] = labels[gallery_indices].unique().numel().item()
+
         return all_results
+
+    def _split_query_and_gallery(self, labels: torch.Tensor, split_ratio: float):
+        """
+        将索引划分为查询集和图库，保证每个查询标签在图库中至少保留一个样本。
+
+        Args:
+            labels (torch.Tensor): 所有样本的标签
+            split_ratio (float): 查询样本比例
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: 查询和图库的索引
+        """
+        label_to_indices = {}
+        for idx, label in enumerate(labels):
+            label_to_indices.setdefault(label.item(), []).append(idx)
+
+        query_indices = []
+        gallery_indices = []
+
+        for indices in label_to_indices.values():
+            indices = torch.tensor(indices)
+            perm = indices[torch.randperm(len(indices))]
+
+            # 至少保留一个样本在图库中，避免查询无正样本
+            if len(indices) < 2:
+                gallery_indices.append(perm)
+                continue
+
+            num_query = int(len(indices) * split_ratio)
+            num_query = max(1, min(num_query, len(indices) - 1))
+
+            query_indices.append(perm[:num_query])
+            gallery_indices.append(perm[num_query:])
+
+        if query_indices:
+            query_indices = torch.cat(query_indices)
+        else:
+            query_indices = torch.tensor([], dtype=torch.long)
+
+        if gallery_indices:
+            gallery_indices = torch.cat(gallery_indices)
+        else:
+            gallery_indices = torch.tensor([], dtype=torch.long)
+
+        return query_indices, gallery_indices
 
     def evaluate_cross_modal_separate(self,
                                       text_features, image_features,
