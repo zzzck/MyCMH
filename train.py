@@ -40,7 +40,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Cross-Modal Hash Retrieval Training')
 
     # 基本配置
-    parser.add_argument('--config', type=str, help='配置文件路径', default='configs/synthetic_config.json')
+    parser.add_argument('--config', type=str, help='配置文件路径')
     parser.add_argument('--dataset', type=str, default='synthetic',
                         choices=['synthetic', 'coco', 'flickr30k'], help='数据集类型')
     parser.add_argument('--data_dir', type=str, help='数据集目录')
