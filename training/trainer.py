@@ -362,9 +362,10 @@ class CrossModalHashTrainer:
             # 验证
             val_metrics = self.validate()
 
-            # 评估（每隔一定epoch）
+            # 评估（默认每个epoch执行，可按配置降频）
             eval_metrics = {}
-            if (epoch + 1) % self.config.eval_interval == 0:
+            should_eval = self.config.evaluate_every_epoch or ((epoch + 1) % self.config.eval_interval == 0)
+            if should_eval:
                 eval_metrics = self.evaluate()
 
                 # 检查是否为最佳模型

@@ -163,19 +163,43 @@ class CrossModalEvaluator:
             calculator = self.metrics_calculators[metric_name]
 
             if metric_name == 'hamming':
-                # 使用哈希码进行评估
-                results = calculator.evaluate_cross_modal(
-                    query_text_hashes, query_image_hashes,
-                    # gallery_text_hashes, gallery_image_hashes,
-                    query_labels, gallery_labels
+                # 使用哈希码进行评估，确保查询与图库对应
+                t2i_results = calculator.evaluate(
+                    query_text_hashes,
+                    gallery_image_hashes,
+                    query_labels,
+                    gallery_labels
+                )
+                i2t_results = calculator.evaluate(
+                    query_image_hashes,
+                    gallery_text_hashes,
+                    query_labels,
+                    gallery_labels
                 )
             else:
-                # 使用特征进行评估
-                results = calculator.evaluate_cross_modal(
-                    query_text_features, query_image_features,
-                    # gallery_text_features, gallery_image_features,
-                    query_labels, gallery_labels
+                # 使用特征进行评估，确保查询与图库对应
+                t2i_results = calculator.evaluate(
+                    query_text_features,
+                    gallery_image_features,
+                    query_labels,
+                    gallery_labels
                 )
+                i2t_results = calculator.evaluate(
+                    query_image_features,
+                    gallery_text_features,
+                    query_labels,
+                    gallery_labels
+                )
+
+            # 组合双向结果并计算平均性能
+            avg_results = {}
+            for key in t2i_results.keys():
+                avg_results[f'Avg_{key}'] = (t2i_results[key] + i2t_results[key]) / 2
+
+            results = {}
+            for prefix, metrics in [('T2I', t2i_results), ('I2T', i2t_results), ('Avg', avg_results)]:
+                for key, value in metrics.items():
+                    results[f'{prefix}_{key}'] = value
 
             # 添加距离度量前缀
             for key, value in results.items():
