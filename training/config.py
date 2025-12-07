@@ -58,9 +58,13 @@ class TrainingConfig:
     drop_last: bool = True
     use_balanced_sampler: bool = False
     samples_per_class: int = 2
+    train_subset_size: int = 0
+    val_subset_size: int = 0
+    test_subset_size: int = 0
 
     # 评估配置
     eval_interval: int = 1
+    evaluate_every_epoch: bool = True
     eval_k_values: List[int] = field(default_factory=lambda: [1, 5, 10, 20, 50])
 
     # 保存和日志配置
@@ -120,6 +124,8 @@ class TrainingConfig:
             **kwargs: 要更新的配置项
         """
         for key, value in kwargs.items():
+            if value is None:
+                continue
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
@@ -160,6 +166,10 @@ def get_coco_config():
     config.hash_dim = 128
     config.feature_dim = 1024
     config.image_backbone = 'resnet101'
+    # 默认对COCO使用较小子集以便快速试验，可通过命令行覆盖为完整数据
+    config.train_subset_size = 20000
+    config.val_subset_size = 5000
+    config.test_subset_size = 5000
     return config
 
 
