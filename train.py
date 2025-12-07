@@ -17,7 +17,7 @@ os.environ['https_proxy'] = 'http://211.81.248.212:3128'
 
 import sys
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset, random_split
 
 # 添加项目路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -58,6 +58,12 @@ def parse_args():
     parser.add_argument('--num_epochs', type=int, default=50, help='训练轮数')
     parser.add_argument('--learning_rate', type=float, default=1e-4, help='学习率')
     parser.add_argument('--weight_decay', type=float, default=1e-5, help='权重衰减')
+    parser.add_argument('--num_workers', type=int, help='DataLoader工作线程数')
+    parser.add_argument('--train_subset_size', type=int, default=0, help='训练集采样子集大小，0为使用全部')
+    parser.add_argument('--val_subset_size', type=int, default=0, help='验证集采样子集大小，0为使用全部')
+    parser.add_argument('--test_subset_size', type=int, default=0, help='测试集采样子集大小，0为使用全部')
+    parser.add_argument('--eval_interval', type=int, default=1, help='评估间隔（保留以向后兼容）')
+    parser.add_argument('--eval_every_epoch', action='store_true', help='每个epoch都进行评估')
 
     # 损失配置
     parser.add_argument('--lambda_quant', type=float, default=0.1, help='量化损失权重')
@@ -74,6 +80,28 @@ def parse_args():
     parser.add_argument('--resume_from', type=str, help='从检查点恢复训练')
 
     return parser.parse_args()
+
+
+def _resolve_coco_paths(config, split: str):
+    """Resolve COCO paths based on provided config and split."""
+    split_dir = 'train2014' if split == 'train' else 'val2014'
+
+    # Prefer user-provided paths; infer validation/test from the train directory
+    if config.image_dir:
+        train_dir = config.image_dir
+        base_dir = os.path.dirname(train_dir.rstrip('/'))
+        image_dir = train_dir if split == 'train' else os.path.join(base_dir, split_dir)
+    else:
+        image_dir = f"/data2/zhangchaoke/PythonProject/MyCMH/datasets/{split_dir}"
+
+    if config.annotations_file:
+        train_ann = config.annotations_file
+        ann_base = os.path.dirname(train_ann)
+        annotations_file = train_ann if split == 'train' else os.path.join(ann_base, f"captions_{split_dir}.json")
+    else:
+        annotations_file = f"/data2/zhangchaoke/PythonProject/MyCMH/datasets/annotations/captions_{split_dir}.json"
+
+    return image_dir, annotations_file
 
 
 def create_dataset(config, tokenizer, split='train'):
@@ -109,11 +137,10 @@ def create_dataset(config, tokenizer, split='train'):
 
     elif config.dataset_name == 'coco':
         # COCO数据集
+        image_dir, annotations_file = _resolve_coco_paths(config, split)
         dataset = COCODataset(
-            # image_dir=config.image_dir,
-            image_dir=f"/data2/zhangchaoke/PythonProject/MyCMH/datasets/{split if split == 'train' else 'val'}2014",
-            # annotations_file=config.annotations_file,
-            annotations_file=f"/data2/zhangchaoke/PythonProject/MyCMH/datasets/annotations/captions_{split if split == 'train' else 'val'}2014.json",
+            image_dir=image_dir,
+            annotations_file=annotations_file,
             tokenizer=tokenizer,
             image_transform=image_transform,
             max_text_length=config.max_text_length,
@@ -171,6 +198,17 @@ def create_dataloaders(config):
         train_dataset = create_dataset(config, tokenizer, 'train')
         val_dataset = create_dataset(config, tokenizer, 'val')
         test_dataset = create_dataset(config, tokenizer, 'test')
+
+    def maybe_subset(dataset, max_samples, seed):
+        if max_samples and max_samples > 0 and len(dataset) > max_samples:
+            generator = torch.Generator().manual_seed(seed)
+            indices = torch.randperm(len(dataset), generator=generator)[:max_samples]
+            return Subset(dataset, indices)
+        return dataset
+
+    train_dataset = maybe_subset(train_dataset, config.train_subset_size, config.seed)
+    val_dataset = maybe_subset(val_dataset, config.val_subset_size, config.seed)
+    test_dataset = maybe_subset(test_dataset, config.test_subset_size, config.seed)
 
     # 创建数据加载器
     train_dataloader = create_dataloader(
@@ -240,8 +278,14 @@ def main():
         num_epochs=args.num_epochs,
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
+        num_workers=args.num_workers if args.num_workers is not None else None,
         lambda_quant=args.lambda_quant,
         lambda_balance=args.lambda_balance,
+        train_subset_size=args.train_subset_size,
+        val_subset_size=args.val_subset_size,
+        test_subset_size=args.test_subset_size,
+        eval_interval=args.eval_interval,
+        evaluate_every_epoch=True if args.eval_every_epoch else None,
         device=args.device,
         mixed_precision=args.mixed_precision,
         seed=args.seed,
